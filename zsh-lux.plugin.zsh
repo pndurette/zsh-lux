@@ -1,7 +1,17 @@
 #!/usr/bin/env zsh
 
+#-----------------------------------------
+# Utility functions
+#-----------------------------------------
+
+# _lux_log: simple debugging function
+# * Only if LUX_DEBUG=1
+# * Will echo every arg passed to it, one per line
+# * Will echo every line of stdin piped to it (optional)
+# e.g. echo 'hello' | _lux_log "hello called"
+
 function _lux_log() {
-    # Exit unless LUX_DEBUG=1
+    # Exit when LUX_DEBUG!=1
     [[ "$LUX_DEBUG" != "1" ]] && return 0
 
     # Passed args
@@ -23,6 +33,37 @@ function _lux_log() {
     fi
 }
 
+# '_lux_defined' & '_lux_default',
+# from 'defined' & 'set_default' by powerlevel9k, the zsh theme:
+# https://github.com/bhilburn/powerlevel9k/blob/master/functions/utilities.zsh
+
+# _lux_defined: check if a var is already defined (even if empty)
+# * Takes the name of a var to check
+# * Exits 0 if var has been set (even if empty)
+# e.g. _lux_defined SOME_VAR
+
+function _lux_defined() {
+  [[ ! -z "${(tP)1}" ]]
+}
+
+# _lux_default: given a var name and value as args,
+# sets the var to value only if var has not been defined
+# * Takes a var name and a var value
+# * Can't work on arrays, for arrays do:
+#   defined ARRAY_VAR || ARRAY_VAR=( some values )
+# e.g. _lux_default SOME_VAR "some value"
+
+function _lux_default() {
+  local varname="$1"
+  local default_value="$2"
+
+  defined "$varname" || typeset -g "$varname"="$default_value"
+}
+
+#-----------------------------------------
+# Get functions
+#-----------------------------------------
+
 function macos_is_dark() {
     local dark_mode=$(osascript -l JavaScript -e \
         "Application('System Events').appearancePreferences.darkMode.get()")
@@ -37,12 +78,28 @@ function macos_is_dark() {
     fi
 }
 
+#-----------------------------------------
+# Set functions
+#-----------------------------------------
+
+# Element: 'macos'
+# Action: Sets macOS dark mode
+# Modes:
+#  * 'light': 'false'
+#  * 'dark': 'true'
+
 LUX_MACOS_LIGHT='false'
 LUX_MACOS_DARK='true'
 function _lux_set_macos() {
     osascript -l JavaScript -e \
         "Application('System Events').appearancePreferences.darkMode.set($1)"
 }
+
+# Element: 'macos_desktop'
+# Action: Sets macOS desktop picture
+# Modes:
+#  * 'light': '/Library/Desktop Pictures/Mojave Day.jpg'
+#  * 'dark': '/Library/Desktop Pictures/Mojave Night.jpg'
 
 LUX_MACOS_DESKTOP_LIGHT='/Library/Desktop Pictures/Mojave Day.jpg'
 LUX_MACOS_DESKTOP_DARK='/Library/Desktop Pictures/Mojave Night.jpg'
@@ -55,9 +112,28 @@ function _lux_set_macos_desktop {
 EOF
 }
 
+# Element: 'iterm'
+# Action: Sets the current iTerm session's color preset name 
+# Modes:
+#  * 'light': 'Solarized Light'
+#  * 'dark': 'Solarized Dark'
+
 LUX_ITERM_LIGHT='Solarized Light'
 LUX_ITERM_DARK='Solarized Dark'
 function _lux_set_iterm() {
+    osascript -l JavaScript -e \
+        "Application('iTerm').currentWindow().currentSession().colorPreset = '$1'"
+}
+
+# Element: 'iterm_all'
+# Action: Sets all iTerm sessions' color preset name 
+# Modes:
+#  * 'light': 'Solarized Light'
+#  * 'dark': 'Solarized Dark'
+
+LUX_ITERM_ALL_LIGHT='Solarized Light'
+LUX_ITERM_ALL_DARK='Solarized Dark'
+function _lux_set_iterm_all() {
     osascript -l JavaScript <<- EOF
         windows = Application('iTerm').windows()
         for (w in windows) {
@@ -72,6 +148,12 @@ function _lux_set_iterm() {
 EOF
 }
 
+# Element: 'iterm'
+# Action: Sets Visual Studio Code color theme
+# Modes:
+#  * 'light': 'Solarized Light'
+#  * 'dark': 'Solarized Dark'
+
 LUX_VSCODE_LIGHT='Solarized Light'
 LUX_VSCODE_DARK='Solarized Dark'
 function _lux_set_vscode() {
@@ -85,14 +167,24 @@ function _lux_set_vscode() {
         > "$LUX_VSCODE_USER_SETTINGS"
 }
 
+# Element: 'all'
+# Action: Sets the mode of a list of (above) elements at once
+# Modes:
+#  * 'light': 'light'
+#  * 'dark': 'dark'
+
 LUX_ALL_LIGHT='light'
 LUX_ALL_DARK='dark'
 function _lux_set_all() {
-    LUX_ALL_LIST=( macos macos_desktop iterm vscode )
+    LUX_ALL_LIST=( macos macos_desktop iterm_all vscode )
     for item in $LUX_ALL_LIST; do
         lux $item $1 &
     done
 }
+
+#-----------------------------------------
+# Main function
+#-----------------------------------------
 
 function lux() {
     local item=$1  # e.g. macos, iterm..
