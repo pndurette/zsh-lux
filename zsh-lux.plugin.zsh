@@ -57,12 +57,58 @@ function _lux_default() {
   local varname="$1"
   local default_value="$2"
 
-  defined "$varname" || typeset -g "$varname"="$default_value"
+  _lux_defined "$varname" || typeset -g "$varname"="$default_value"
+}
+
+# _lux_is_macos: check if OS is macOS
+# * Returns 1 if OS is not macOS
+# * Echos to stderr with name of calling function
+
+function _lux_is_macos() {
+    local fct=$funcstack[2]
+    if [[ ! "$OSTYPE" =~ ^darwin ]]; then
+        echo "'$fct' requires macOS." >&2
+        return 1;
+    fi
+}
+
+# _lux_is_macos: check if macOS app is installed
+# * Returns 1 if macOS app is not installed
+# * Echos to stderr with name of calling function
+
+function _lux_macos_app_found() {
+    local app="$1"
+    local fct=$funcstack[2]
+
+    if ! osascript -l JavaScript -e "Application('$app')" >/dev/null 2>&1; then
+        echo "'$fct' requires '$app'." >&2
+        return 1
+    fi
+}
+
+# _lux_is_macos: check if command is in PATH
+# * Returns 1 if command is in not in PATH
+# * Echos to stderr with name of calling function
+
+function _lux_command_found() {
+    local cmd=$1
+    local fct=$funcstack[2]
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+        echo "'$fct' requires '$cmd'." >&2
+        return 1
+    fi
 }
 
 #-----------------------------------------
 # Get functions
 #-----------------------------------------
+
+# macos_is_dark: check if the dark mode in macOS is active
+# * Returns:
+# *  0 if dark mode is active
+# *  1 if light mode is active
+# *  2 if the status of the dark mode can't be determined
+#    (i.e. the version of macOS does not support it)
 
 function macos_is_dark() {
     local dark_mode=$(osascript -l JavaScript -e \
@@ -82,28 +128,40 @@ function macos_is_dark() {
 # Set functions
 #-----------------------------------------
 
+#-----------------------------------------
 # Element: 'macos'
 # Action: Sets macOS dark mode
-# Modes:
+# Default modes (non-customizable:
 #  * 'light': 'false'
 #  * 'dark': 'true'
+# Extra configuration: N/A
+# Requires:
+#  * macOS
 
 LUX_MACOS_LIGHT='false'
 LUX_MACOS_DARK='true'
+
 function _lux_set_macos() {
+    if ! _lux_is_macos; then return 1; fi
     osascript -l JavaScript -e \
         "Application('System Events').appearancePreferences.darkMode.set($1)"
 }
 
+#-----------------------------------------
 # Element: 'macos_desktop'
 # Action: Sets macOS desktop picture
-# Modes:
+# Default modes:
 #  * 'light': '/Library/Desktop Pictures/Mojave Day.jpg'
 #  * 'dark': '/Library/Desktop Pictures/Mojave Night.jpg'
+# Extra configuration: N/A
+# Requires:
+#  * macOS
 
-LUX_MACOS_DESKTOP_LIGHT='/Library/Desktop Pictures/Mojave Day.jpg'
-LUX_MACOS_DESKTOP_DARK='/Library/Desktop Pictures/Mojave Night.jpg'
+_lux_default LUX_MACOS_DESKTOP_LIGHT '/Library/Desktop Pictures/Mojave Day.jpg'
+_lux_default LUX_MACOS_DESKTOP_DARK  '/Library/Desktop Pictures/Mojave Night.jpg'
+
 function _lux_set_macos_desktop {
+    if ! _lux_is_macos; then return 1; fi
     osascript -l JavaScript <<- EOF
         desktops = Application('System Events').desktops()
         for (d in desktops) {
@@ -112,28 +170,40 @@ function _lux_set_macos_desktop {
 EOF
 }
 
+#-----------------------------------------
 # Element: 'iterm'
-# Action: Sets the current iTerm session's color preset name 
-# Modes:
+# Action: Sets the current iTerm session's color by preset name
+# Default modes:
 #  * 'light': 'Solarized Light'
 #  * 'dark': 'Solarized Dark'
+# Extra configuration: N/A
+# Requires:
+#  * iTerm
 
-LUX_ITERM_LIGHT='Solarized Light'
-LUX_ITERM_DARK='Solarized Dark'
+_lux_default LUX_ITERM_LIGHT 'Solarized Light'
+_lux_default LUX_ITERM_DARK  'Solarized Dark'
+
 function _lux_set_iterm() {
+    if ! _lux_macos_app_found 'iTerm'; then return 1; fi
     osascript -l JavaScript -e \
         "Application('iTerm').currentWindow().currentSession().colorPreset = '$1'"
 }
 
+#-----------------------------------------
 # Element: 'iterm_all'
-# Action: Sets all iTerm sessions' color preset name 
-# Modes:
+# Action: Sets all iTerm sessions' color by preset name
+# Default modes:
 #  * 'light': 'Solarized Light'
 #  * 'dark': 'Solarized Dark'
+# Extra configuration: N/A
+# Requires:
+#  * iTerm
 
-LUX_ITERM_ALL_LIGHT='Solarized Light'
-LUX_ITERM_ALL_DARK='Solarized Dark'
+_lux_default LUX_ITERM_ALL_LIGHT 'Solarized Light'
+_lux_default LUX_ITERM_ALL_DARK  'Solarized Dark'
+
 function _lux_set_iterm_all() {
+    if ! _lux_macos_app_found 'iTerm'; then return 1; fi
     osascript -l JavaScript <<- EOF
         windows = Application('iTerm').windows()
         for (w in windows) {
@@ -148,17 +218,27 @@ function _lux_set_iterm_all() {
 EOF
 }
 
+#-----------------------------------------
 # Element: 'iterm'
 # Action: Sets Visual Studio Code color theme
-# Modes:
+# Default modes:
 #  * 'light': 'Solarized Light'
 #  * 'dark': 'Solarized Dark'
+# Extra configuration:
+#  * LUX_VSCODE_USER_SETTINGS: "$HOME/Library/Application Support/Code/User/settings.json"
+# Requires:
+#  * Visual Studio Code
+#  * jq
 
-LUX_VSCODE_LIGHT='Solarized Light'
-LUX_VSCODE_DARK='Solarized Dark'
+_lux_default LUX_VSCODE_LIGHT 'Solarized Light'
+_lux_default LUX_VSCODE_DARK  'Solarized Dark'
+
 function _lux_set_vscode() {
-    LUX_VSCODE_USER_SETTINGS="$HOME/Library/Application Support/Code/User/settings.json"
+    if ! _lux_command_found code; then return 1; fi
+    if ! _lux_command_found jq;   then return 1; fi
+
     LUX_VSCODE_COLORTHEME_KEY="workbench.colorTheme"
+    _lux_default LUX_VSCODE_USER_SETTINGS "$HOME/Library/Application Support/Code/User/settings.json"
 
     touch "$LUX_VSCODE_USER_SETTINGS"
     jq '.[$key] = $val' \
@@ -167,16 +247,20 @@ function _lux_set_vscode() {
         > "$LUX_VSCODE_USER_SETTINGS"
 }
 
+#-----------------------------------------
 # Element: 'all'
 # Action: Sets the mode of a list of (above) elements at once
-# Modes:
+# Default modes (non-customizable):
 #  * 'light': 'light'
 #  * 'dark': 'dark'
+# Extra configuration:
+#  * LUX_ALL_LIST: ( macos macos_desktop iterm_all vscode )
 
 LUX_ALL_LIGHT='light'
 LUX_ALL_DARK='dark'
+
 function _lux_set_all() {
-    LUX_ALL_LIST=( macos macos_desktop iterm_all vscode )
+    _lux_defined LUX_ALL_LIST || LUX_ALL_LIST=( macos macos_desktop iterm_all vscode )
     for item in $LUX_ALL_LIST; do
         lux $item $1 &
     done
@@ -185,6 +269,11 @@ function _lux_set_all() {
 #-----------------------------------------
 # Main function
 #-----------------------------------------
+
+# lux: toggle appearance mode of elements
+# * Takes <item> <mode> (e.g. lux macos light)
+# * Calls the appropricate function (_set_lux_<item>)
+# *  with the appropriate var (LUX_<ITEM>_<MODE>) value
 
 function lux() {
     local item=$1  # e.g. macos, iterm..
@@ -208,6 +297,12 @@ function lux() {
                            "arg: '$arg' (arg_var: $arg_var)"
 }
 
-# Fun aliases!
-alias lumos='lux all light'
-alias nox='lux all dark'
+#-----------------------------------------
+# Completion functions
+#-----------------------------------------
+
+function _lux_complete_elements() {
+    reply=( $(compgen -A function | grep -oP '^_lux_set_\K[^ ]+' | sort) )
+}
+
+compctl -K  _lux_complete_elements lux
