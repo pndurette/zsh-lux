@@ -79,14 +79,13 @@ function _lux_is_macos() {
 function _lux_macos_app_found() {
     local app="$1"
     local fct=$funcstack[2]
-
     if ! osascript -l JavaScript -e "Application('$app')" >/dev/null 2>&1; then
         echo "'$fct' requires '$app'." >&2
         return 1
     fi
 }
 
-# _lux_is_macos: check if command is in PATH
+# _lux_command_found: check if command is in PATH
 # * Returns 1 if command is in not in PATH
 # * Echos to stderr with name of calling function
 
@@ -131,7 +130,7 @@ function macos_is_dark() {
 #-----------------------------------------
 # Element: 'macos'
 # Action: Sets macOS dark mode
-# Default modes (non-customizable:
+# Default modes (non-customizable):
 #  * 'light': 'false'
 #  * 'dark': 'true'
 # Extra configuration: N/A
@@ -296,13 +295,3 @@ function lux() {
     $fct "$arg" | _lux_log "fct: $fct" \
                            "arg: '$arg' (arg_var: $arg_var)"
 }
-
-#-----------------------------------------
-# Completion functions
-#-----------------------------------------
-
-function _lux_complete_elements() {
-    reply=( $(compgen -A function | grep -oP '^_lux_set_\K[^ ]+' | sort) )
-}
-
-compctl -K  _lux_complete_elements lux
