@@ -7,7 +7,7 @@
 # https://unix.stackexchange.com/questions/325647/how-to-add-autocomplete-for-path-to-custom-completion-function-in-zsh
 
 local -a elements
-local -a modes; modes=( light dark ) # default
+local -a modes
 
 # _lux_load_elements: Load array of elements (1st arg.)
 # * 1. List all loaded function names: compgen -A 'function'
@@ -20,13 +20,14 @@ _lux_load_elements() {
 }
 
 # _lux_load_modes_for_element: Load array of modes (2nd arg.) for an element $1
-# * If LUX_$1_EXTRAS is defined, append to modes default
+# * If LUX_$1_EXTRAS is defined, append to default modes
 #   e.g. LUX_MACOS_EXTRAS not defined
 #        modes for 'macos' -> ( light dark )
 #        LUX_ITERM_EXTRAS="blue white"
 #        modes for 'iterm' -> ( light dark blue white )
 
 _lux_load_modes_for_element() {
+    modes=( light dark ) # default
     local element=$1
 
     # Extra modes: variable name (uppercase))
