@@ -1,0 +1,66 @@
+#compdef lux
+#autoload
+
+# Completion function for 'lux'
+
+# https://github.com/vapniks/zsh-completions/blob/master/zsh-completions-howto.org
+# https://unix.stackexchange.com/questions/325647/how-to-add-autocomplete-for-path-to-custom-completion-function-in-zsh
+
+local -a elements
+local -a modes; modes=( light dark ) # default
+
+# _lux_load_elements: Load array of elements (1st arg.)
+# * 1. List all loaded function names: compgen -A 'function'
+# * 2. GREP ^_lux_set_ (and discard that part, \K), keep the rest, sort.
+#      e.g. _lux_set_macos -> ( macos iterm )
+#           _lux_set_iterm
+
+_lux_load_elements() {
+    elements=( $(compgen -A 'function' | grep -oP "^_lux_set_\K[^ ]+" | sort) )
+}
+
+# _lux_load_modes_for_element: Load array of modes (2nd arg.) for an element $1
+# * If LUX_$1_EXTRAS is defined, append to modes default
+#   e.g. LUX_MACOS_EXTRAS not defined
+#        modes for 'macos' -> ( light dark )
+#        LUX_ITERM_EXTRAS="blue white"
+#        modes for 'iterm' -> ( light dark blue white )
+
+_lux_load_modes_for_element() {
+    local element=$1
+
+    # Extra modes: variable name (uppercase))
+    # e.g. LUX_ITERM_EXTRAS
+    typeset -u extras_var
+    local extras_var="LUX_${element}_EXTRAS"
+
+    # Extra modes: variable value read into array
+    # e.g. "blue white" -> ( blue white )
+    local -a modes_extras
+    IFS=' ' read -A modes_extras <<< "${(P)${extras_var}}"
+
+    # Append extra modes (nothing if none)
+    modes+=($modes_extras)
+}
+
+# Main completion function
+# lux <element> <mode>
+
+_lux() {
+    local state
+
+    _arguments '1: :->element' '2: :->mode'
+
+    case $state in
+    element)
+        _lux_load_elements
+        _describe 'lux element' elements
+    ;;
+    mode)
+        _lux_load_modes_for_element "$words[2]"
+        _describe 'lux mode' modes
+    ;;
+    esac
+}
+
+_lux "$@"
