@@ -8,7 +8,7 @@ Also features the `macos_is_dark` helper function to determine if the macOS dark
 
 ## Demo
 
-![Imgur]https://i.imgur.com/CkIkr8H.gif)
+![Imgur](https://i.imgur.com/CkIkr8H.gif)
 
 ## Documentation
 
