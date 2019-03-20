@@ -278,6 +278,11 @@ function lux() {
     local item=$1  # e.g. macos, iterm..
     local mode=$2  # i.e. light, dark, <custom>
 
+    if [[ $# -lt 2 ]]; then
+        echo "Usage: $0 <item> <mode>"
+        return 1
+    fi
+
     # Function name
     # e.g. _lux_set_iterm
     local fct="_lux_set_${item}"
