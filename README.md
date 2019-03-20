@@ -75,7 +75,7 @@ fpath=(/your/zsh-lux/directory/ $fpath)    # (before compinit) load shell comple
 
 #### `lux`
 
-Activates light or dark modes of macOS and other items
+Activate/switch to the mode (e.g. light, dark) of macOS or other item.
 
 `lux <item> <mode>` 
 
@@ -90,7 +90,7 @@ lux iterm light
 
 #### `macos_is_dark`
 
-Checks if dark mode in macOS is active.
+Helper function that checks if the dark mode in macOS is active.
 
 * Returns:
   * `0` if dark mode is active
@@ -111,7 +111,7 @@ fi
 
 ### Items
 
-An item is represented by one function that can trigger an appearance change for that item. These functions take an argument (e.g. the name of a theme) which are retreived from a variable that depends on the chosen mode (i.e. 'light' or 'dark').  These variables follow the convention `LUX_<ITEM>_<MODE>`. In most cases, these variables can be redefined (e.g. in `.zshrc`).
+An item is represented by one function that can trigger an appearance change for that item. These functions take an argument (e.g. the name of a theme) which are retrieved from a variable that depends on the chosen mode (i.e. 'light' or 'dark').  These variables follow the convention `LUX_<ITEM>_<MODE>`. In most cases, these variables can be redefined (e.g. in `.zshrc`).
 
 #### `macos`
 
@@ -149,7 +149,7 @@ An item is represented by one function that can trigger an appearance change for
 
 #### `iterm`
 
-**Action**:  Sets the *current* iTerm2 session's color by **preset name** (i.e. `⌘-i → Colors → Color Presets… `). It does not affect profiles or preferences. Creating/importing/naming colour schemes is left to the user. See https://github.com/mbadolato/iTerm2-Color-Schemes for examples.
+**Action**:  Sets the *current* iTerm2 session's color to a **preset name** (i.e. `⌘-i → Colors → Color Presets… `). It does not affect profiles or preferences. Creating/importing/naming colour schemes is left to the user. See https://github.com/mbadolato/iTerm2-Color-Schemes for examples.
 
 **Requires**: macOS, [iTerm2](https://iterm2.com)
 
@@ -183,7 +183,7 @@ An item is represented by one function that can trigger an appearance change for
 
 #### `vscode`
 
-**Action**:  Sets Visual Studio Code color theme. Modifies the `workbench.colorTheme` setting in the `settings.json`.
+**Action**:  Sets Visual Studio Code color theme. Modifies the `workbench.colorTheme` setting in the `settings.json` user file. Visual Studio Code applies settings as they are changed.
 
 **Requires**: [Visual Studio Code](https://code.visualstudio.com), [jq](https://stedolan.github.io/jq/)
 
@@ -198,13 +198,13 @@ An item is represented by one function that can trigger an appearance change for
 
 | Setting                                   | Variable                   | Default                                                     | Customizable |
 | ----------------------------------------- | -------------------------- | ----------------------------------------------------------- | ------------ |
-| Location of the user `settings.json` file | `LUX_VSCODE_USER_SETTINGS` | `$HOME/Library/Application Support/Code/User/settings.json` | ✅            |
+| Location of the `settings.json` user file | `LUX_VSCODE_USER_SETTINGS` | `$HOME/Library/Application Support/Code/User/settings.json` | ✅            |
 
 ------
 
 #### `all`
 
-**Action**:  Sets all items to same mode at once. Under the hood, this calls `lux` on a list of items.
+**Action**:  Sets all items to the same mode at once. Under the hood, this calls `lux` on a list of items.
 
 **Requires**: Any requirements of the referenced items.
 
@@ -225,11 +225,66 @@ An item is represented by one function that can trigger an appearance change for
 
 ### Extending `zsh-lux`
 
+`zsh-lux` is convention-based and can therefore be easily expanded. See the plugin file for examples.
+
 #### Adding items
 
-Lolol
+Better explained with an example: let's pretend we want to add an item for an application named 'wow' that changes its theme to what is set in `/tmp/wow.cfg`. 'wow' is in light mode when the theme is '*white*' and in dark mode when the theme is '*black*'':
+
+1. Define a function named `_lux_set_wow` (`_lux_set_<item>`)  that sets theme name in `/tmp/wow.cfg` from an argument `$1`:
+
+   ```bash
+   function _lux_set_wow() {
+     echo "$1" > /tmp/wow.cfg
+   }
+   ```
+
+2. Define LUX_<ITEM>_<MODE> for the modes:
+
+   ```bash
+   LUX_WOW_LIGHT='white'
+   LUX_WOW_DARK='black'
+   ```
+
+**Done!** Now just call:
+
+```bash
+lux wow light # or
+lux wow dark
+```
+
+This new item will also be automatically be added to zsh's tab autocompletion.
 
 #### Adding modes
 
-Lolol
+By default, items have a `light` and `dark` mode, but adding other modes is a simple as defining a new variable.
 
+For example to add the modes `superhero` (that sets the [`batman`](https://github.com/mbadolato/iTerm2-Color-Schemes#batman iTerm colour scheme) and `purple` (that sets the [`c64`](https://github.com/mbadolato/iTerm2-Color-Schemes#c64) iTerm2 colour scheme), define `LUX_<ITEM>_<MODE>` for each:
+
+```bash
+LUX_ITERM_SUPERHERO="batman"
+LUX_ITERM_PURPLE="c64"
+```
+**Done!** Now just call:
+
+```bash
+lux iterm superhero
+lux iterm purple
+```
+*(Optional)* To add those extra modes to the tab autocompletion, define the `LUX_<ITEM>_EXTRAS` variable with space-delimited values of those extra modes:
+
+```bash
+LUX_ITERM_EXTRAS="superhero purple"
+```
+
+
+## Fun aliases!
+
+```bash
+alias lumos='lux all light'
+alias nox='lux all dark'
+```
+
+## License
+
+[The MIT License (MIT)](LICENSE) Copyright © 2019 Pierre Nicolas Durette
