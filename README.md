@@ -36,7 +36,7 @@ Also features the `macos_is_dark` helper function to determine if the macOS dark
 antigen bundle pndurette/zsh-lux   # in your ~/.zshrc
 ```
 
-**[Antiboy](https://github.com/getantibody/antibody)**
+**[Antibody](https://github.com/getantibody/antibody)**
 
 ```bash
 antibody bundle pndurette/zsh-lux   # in your ~/.zshrc
