@@ -123,6 +123,25 @@ function macos_is_dark() {
     fi
 }
 
+# macos_release_name: get the release name of macOS
+# * Echos the capitalized release name of macOS
+#   (e.g. "Catalina" for macOS 10.15.*)
+
+function macos_release_name() {
+    declare -A _lux_macos_release_names=(
+        "10.14" "Mojave"
+        "10.15" "Catalina"
+        "11.0"  "Big Sur"
+    )
+    local macos_version=$(sw_vers -productVersion)
+    local macos_release=$_lux_macos_release_names[${macos_version%.*}]
+
+    _lux_log "fct: $funcstack[1]" "macOS version: $macos_version" \
+                                  "macOS release: $macos_release"
+
+    echo $macos_release
+}
+
 #-----------------------------------------
 # Set functions
 #-----------------------------------------

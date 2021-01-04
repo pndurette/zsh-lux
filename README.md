@@ -16,6 +16,7 @@ Also features the `macos_is_dark` helper function to determine if the macOS dark
    * [Usage](#usage)
        * [lux](#lux)
        * [macos_is_dark](#macos_is_dark)
+       * [macos_release_name](#macos_release_name)
        * [Debug mode](#debug-mode)
    * [Items](#items)
        * [macos](#macos)
@@ -105,6 +106,19 @@ if macos_is_dark; then
 else
     echo "macOS is light!"
 fi
+```
+
+#### `macos_release_name`
+
+Helper function that provides the release name of macOS (e.g. "Catalina")
+
+Example usage:
+
+```bash
+$ sw_vers -productVersion
+10.15.7
+$ macos_release_name
+Catalina
 ```
 
 #### Debug mode
