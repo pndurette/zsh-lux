@@ -16,10 +16,12 @@ Also features the `macos_is_dark` helper function to determine if the macOS dark
    * [Usage](#usage)
        * [lux](#lux)
        * [macos_is_dark](#macos_is_dark)
+       * [macos_release_name](#macos_release_name)
        * [Debug mode](#debug-mode)
    * [Items](#items)
        * [macos](#macos)
        * [macos_desktop](#macos_desktop)
+       * [macos_desktop_style](#macos_desktop_style)
        * [iterm](#iterm)
        * [iterm_all](#iterm_all)
        * [vscode](#vscode)
@@ -107,6 +109,19 @@ else
 fi
 ```
 
+#### `macos_release_name`
+
+Helper function that returns the capitalized release name of macOS (e.g. "Monterey")
+
+Example usage:
+
+```bash
+$ sw_vers -productVersion
+12.6
+$ macos_release_name
+Monterey
+```
+
 #### Debug mode
 
 Set `LUX_DEBUG=1` to get a log output for debuging purposes.
@@ -134,16 +149,37 @@ An item is represented by one function that can trigger an appearance change for
 
 #### `macos_desktop`
 
-**Action**: Sets macOS desktop picture
+**Action**: Sets macOS desktop picture. On Mojave and above, _Dynamic_ and _Light and Dark_ Desktop pictures are special `.heic` files that contain multiple images that macOS can [automatically change throughout the day](https://support.apple.com/en-ca/guide/mac-help/mchlp3013/12.0/mac/12.0). For those desktop pictures, set the same path for both `light` and `dark` and use [macos_desktop_style](#macos_desktop_style) to choose the appearance setting.
+
+*Note:* Only the `<macOS name> Graphic.heic` (e.g. `Ventura Graphic.heic`) Dynamic Desktop comes pre-installed. To use other images than the default (below), select the image in System Preferences which will download it to `~/Library/Application Support/com.apple.mobileAssetDesktop/`
 
 **Requires**: macOS
 
 **Modes**:
 
-| Mode    | Variable                  | Default                                      | Customizable |
-| ------- | ------------------------- | -------------------------------------------- | ------------ |
-| `light` | `LUX_MACOS_DESKTOP_LIGHT` | `/Library/Desktop Pictures/Mojave Day.jpg`   | ✅            |
-| `dark`  | `LUX_MACOS_DESKTOP_DARK`  | `/Library/Desktop Pictures/Mojave Night.jpg` | ✅            |
+| Mode    | Variable                  | Default                                                      | Customizable |
+| ------- | ------------------------- | ------------------------------------------------------------ | ------------ |
+| `light` | `LUX_MACOS_DESKTOP_LIGHT` | `/System/Library/Desktop Pictures/<macOS name> Graphic.heic` | ✅            |
+| `dark`  | `LUX_MACOS_DESKTOP_DARK`  | ``/System/Library/Desktop Pictures/<macOS name> Graphic.heic`` | ✅            |
+
+**Extra configuration**: N/A
+
+---
+
+#### `macos_desktop_style`
+
+**Action**: Sets macOS desktop picture _style_, for certain `.heic` images (in Mojave and above) that support it. Supported image types are either "Dynamic Desktop" (`dynamic`, image changes throughout the day) or "Light and Dark" (`auto`, image matches the macOS apperance). Either types can be expliclty set to their `light` or `dark` setting).
+
+**Requires**: macOS
+
+**Modes**:
+
+| Mode      | Variable                          | Default   | Customizable |
+| --------- | --------------------------------- | --------- | ------------ |
+| `light`   | `LUX_MACOS_DESKTOP_STYLE_LIGHT`   | `light`   | 🚫            |
+| `dark`    | `LUX_MACOS_DESKTOP_STYLE_DARK`    | `dark`    | 🚫            |
+| `auto`    | `LUX_MACOS_DESKTOP_STYLE_AUTO`    | `auto`    | 🚫            |
+| `dynamic` | `LUX_MACOS_DESKTOP_STYLE_DYNAMIC` | `dynamic` | 🚫            |
 
 **Extra configuration**: N/A
 
@@ -219,9 +255,9 @@ An item is represented by one function that can trigger an appearance change for
 
 **Extra configuration**:
 
-| Setting                              | Variable       | Default                                    | Customizable |
-| ------------------------------------ | -------------- | ------------------------------------------ | ------------ |
-| Array of the items affected by `all` | `LUX_ALL_LIST` | `( macos macos_desktop iterm_all vscode )` | ✅            |
+| Setting                              | Variable       | Default                                                      | Customizable |
+| ------------------------------------ | -------------- | :----------------------------------------------------------- | ------------ |
+| Array of the items affected by `all` | `LUX_ALL_LIST` | `( macos macos_desktop macos_desktop_style iterm_all vscode )` | ✅            |
 
 ------
 
@@ -289,4 +325,4 @@ alias nox='lux all dark'
 
 ## License
 
-[The MIT License (MIT)](LICENSE) Copyright © 2019 Pierre Nicolas Durette
+[The MIT License (MIT)](LICENSE) Copyright © 2019-2022 Pierre Nicolas Durette

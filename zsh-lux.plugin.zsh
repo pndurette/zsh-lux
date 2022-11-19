@@ -123,6 +123,27 @@ function macos_is_dark() {
     fi
 }
 
+# macos_release_name: get the release name of macOS
+# * Echos the capitalized release name of macOS
+#   (e.g. "Catalina" for macOS 10.15.*)
+
+function macos_release_name() {
+    declare -A _lux_macos_release_names=(
+        "10.14" "Mojave"
+        "10.15" "Catalina"
+        "11"    "Big Sur"
+        "12"    "Monterey"
+        "13"    "Ventura"
+    )
+    local macos_version=$(sw_vers -productVersion)
+    local macos_release=$_lux_macos_release_names[${macos_version%.*}]
+
+    _lux_log "fct: $funcstack[1]" "macOS version: $macos_version" \
+                                  "macOS release: $macos_release"
+
+    echo $macos_release
+}
+
 #-----------------------------------------
 # Set functions
 #-----------------------------------------
@@ -150,21 +171,50 @@ function _lux_set_macos() {
 # Element: 'macos_desktop'
 # Action: Sets macOS desktop picture
 # Default modes:
-#  * 'light': '/Library/Desktop Pictures/Mojave Day.jpg'
-#  * 'dark': '/Library/Desktop Pictures/Mojave Night.jpg'
+#  * 'light': '/System/Library/Desktop Pictures/$(macos_release_name) Graphic.heic'
+#  * 'dark': '/System/Library/Desktop Pictures/$(macos_release_name) Graphic.heic'
 # Extra configuration: N/A
 # Requires:
 #  * macOS
 
-_lux_default LUX_MACOS_DESKTOP_LIGHT '/Library/Desktop Pictures/Mojave Day.jpg'
-_lux_default LUX_MACOS_DESKTOP_DARK  '/Library/Desktop Pictures/Mojave Night.jpg'
+_lux_default LUX_MACOS_DESKTOP_LIGHT "/System/Library/Desktop Pictures/$(macos_release_name) Graphic.heic"
+_lux_default LUX_MACOS_DESKTOP_DARK  "/System/Library/Desktop Pictures/$(macos_release_name) Graphic.heic"
 
-function _lux_set_macos_desktop {
+function _lux_set_macos_desktop() {
     if ! _lux_is_macos; then return 1; fi
     osascript -l JavaScript <<- EOF
         desktops = Application('System Events').desktops()
         for (d in desktops) {
             desktops[d].picture = '$1'
+        }
+EOF
+}
+
+#-----------------------------------------
+# Element: 'macos_desktop_style'
+# Action: Sets macOS desktop picture style (for pictures that support it)
+# Default modes:
+#  * 'light': 'light'
+#  * 'dark': 'dark'
+#  * 'auto': 'auto'
+#  * 'dynamic': 'dynamic'
+# Extra configuration: N/A
+# Requires:
+#  * macOS
+
+LUX_MACOS_DESKTOP_STYLE_LIGHT="light"
+LUX_MACOS_DESKTOP_STYLE_DARK="dark"
+LUX_MACOS_DESKTOP_STYLE_AUTO="auto"
+LUX_MACOS_DESKTOP_STYLE_DYNAMIC="dynamic"
+
+LUX_MACOS_DESKTOP_STYLE_EXTRAS="auto dynamic"
+
+function _lux_set_macos_desktop_style() {
+    if ! _lux_is_macos; then return 1; fi
+    osascript -l JavaScript <<- EOF
+        desktops = Application('System Events').desktops()
+        for (d in desktops) {
+            desktops[d].dynamicStyle = '$1'
         }
 EOF
 }
@@ -259,7 +309,7 @@ LUX_ALL_LIGHT='light'
 LUX_ALL_DARK='dark'
 
 function _lux_set_all() {
-    _lux_defined LUX_ALL_LIST || LUX_ALL_LIST=( macos macos_desktop iterm_all vscode )
+    _lux_defined LUX_ALL_LIST || LUX_ALL_LIST=( macos macos_desktop macos_desktop_style iterm_all vscode )
     for item in $LUX_ALL_LIST; do
         lux $item $1 &
     done
