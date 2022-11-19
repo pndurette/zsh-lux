@@ -255,9 +255,9 @@ An item is represented by one function that can trigger an appearance change for
 
 **Extra configuration**:
 
-| Setting                              | Variable       | Default                                    | Customizable |
-| ------------------------------------ | -------------- | ------------------------------------------ | ------------ |
-| Array of the items affected by `all` | `LUX_ALL_LIST` | `( macos macos_desktop iterm_all vscode )` | ✅            |
+| Setting                              | Variable       | Default                                                      | Customizable |
+| ------------------------------------ | -------------- | :----------------------------------------------------------- | ------------ |
+| Array of the items affected by `all` | `LUX_ALL_LIST` | `( macos macos_desktop macos_desktop_style iterm_all vscode )` | ✅            |
 
 ------
 
@@ -325,4 +325,4 @@ alias nox='lux all dark'
 
 ## License
 
-[The MIT License (MIT)](LICENSE) Copyright © 2019 Pierre Nicolas Durette
+[The MIT License (MIT)](LICENSE) Copyright © 2019-2022 Pierre Nicolas Durette
