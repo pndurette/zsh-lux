@@ -309,7 +309,7 @@ LUX_ALL_LIGHT='light'
 LUX_ALL_DARK='dark'
 
 function _lux_set_all() {
-    _lux_defined LUX_ALL_LIST || LUX_ALL_LIST=( macos macos_desktop iterm_all vscode )
+    _lux_defined LUX_ALL_LIST || LUX_ALL_LIST=( macos macos_desktop macos_desktop_style iterm_all vscode )
     for item in $LUX_ALL_LIST; do
         lux $item $1 &
     done
