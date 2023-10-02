@@ -72,7 +72,7 @@ function _lux_is_macos() {
     fi
 }
 
-# _lux_is_macos: check if macOS app is installed
+# _lux_macos_app_found: check if macOS app is installed
 # * Returns 1 if macOS app is not installed
 # * Echos to stderr with name of calling function
 
