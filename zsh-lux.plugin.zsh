@@ -134,6 +134,7 @@ function macos_release_name() {
         "11"    "Big Sur"
         "12"    "Monterey"
         "13"    "Ventura"
+        "14"    "Sonoma"
     )
     local macos_version=$(sw_vers -productVersion)
     local macos_release=$_lux_macos_release_names[${macos_version%.*}]
