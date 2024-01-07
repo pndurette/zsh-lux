@@ -325,4 +325,4 @@ alias nox='lux all dark'
 
 ## License
 
-[The MIT License (MIT)](LICENSE) Copyright © 2019-2023 Pierre Nicolas Durette
+[The MIT License (MIT)](LICENSE) Copyright © 2019-2024 Pierre Nicolas Durette
