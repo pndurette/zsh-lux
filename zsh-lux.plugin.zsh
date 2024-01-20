@@ -98,6 +98,19 @@ function _lux_command_found() {
     fi
 }
 
+# _lux_file_found: check if file exists
+# * Returns 1 if file does not exist
+# * Echos to stderr with name of calling function
+
+function _lux_file_found() {
+    local file=$1
+    local fct=$funcstack[2]
+    if [[ ! -f "$file" ]]; then
+        echo "'$fct' '$file' not found." >&2
+        return 1
+    fi
+}
+
 #-----------------------------------------
 # Get functions
 #-----------------------------------------
@@ -178,18 +191,31 @@ function _lux_set_macos() {
 #-----------------------------------------
 # Element: 'macos_desktop'
 # Action: Sets macOS desktop picture
-# Default modes:
-#  * 'light': '/System/Library/Desktop Pictures/$(macos_release_name) Graphic.heic'
-#  * 'dark': '/System/Library/Desktop Pictures/$(macos_release_name) Graphic.heic'
+# Default modes
+#  * Sonoma
+#    * 'light': '/System/Library/Desktop Pictures/$(macos_release_name).heic'
+#    * 'dark': '/System/Library/Desktop Pictures/$(macos_release_name).heic'
+#  * All other:
+#    * 'light': '/System/Library/Desktop Pictures/$(macos_release_name) Graphic.heic'
+#    * 'dark': '/System/Library/Desktop Pictures/$(macos_release_name) Graphic.heic'
 # Extra configuration: N/A
 # Requires:
 #  * macOS
 
-_lux_default LUX_MACOS_DESKTOP_LIGHT "/System/Library/Desktop Pictures/$(macos_release_name) Graphic.heic"
-_lux_default LUX_MACOS_DESKTOP_DARK  "/System/Library/Desktop Pictures/$(macos_release_name) Graphic.heic"
+case $(macos_release_name) in
+    "Sonoma")
+        _lux_default LUX_MACOS_DESKTOP_LIGHT "/System/Library/Desktop Pictures/$(macos_release_name).heic"
+        _lux_default LUX_MACOS_DESKTOP_DARK  "/System/Library/Desktop Pictures/$(macos_release_name).heic"
+        ;;
+    *)
+        _lux_default LUX_MACOS_DESKTOP_LIGHT "/System/Library/Desktop Pictures/$(macos_release_name) Graphic.heic"
+        _lux_default LUX_MACOS_DESKTOP_DARK  "/System/Library/Desktop Pictures/$(macos_release_name) Graphic.heic"
+        ;;
+esac
 
 function _lux_set_macos_desktop() {
     if ! _lux_is_macos; then return 1; fi
+    if ! _lux_file_found "$1"; then return 1; fi
     osascript -l JavaScript <<- EOF
         desktops = Application('System Events').desktops()
         for (d in desktops) {
