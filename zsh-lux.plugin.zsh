@@ -137,7 +137,14 @@ function macos_release_name() {
         "14"    "Sonoma"
     )
     local macos_version=$(sw_vers -productVersion)
-    local macos_release=$_lux_macos_release_names[${macos_version%.*}]
+
+    if [[ "$macos_version" =~ ^10\. ]]; then
+        # macOS 10.*: remove patch version number
+        local macos_release=$_lux_macos_release_names[${macos_version%.*}]
+    else
+        # macOS 11+: remove minor.patch version number
+        local macos_release=$_lux_macos_release_names[${macos_version%.*.*}]
+    fi
 
     _lux_log "fct: $funcstack[1]" "macOS version: $macos_version" \
                                   "macOS release: $macos_release"
