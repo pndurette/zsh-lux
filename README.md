@@ -29,8 +29,8 @@ Also features the `macos_is_dark` helper function to determine if the macOS dark
    * [Extending zsh-lux](#extending-zsh-lux)
        * [Adding items](#adding-items)
        * [Adding modes](#adding-modes)
-   * [Caveats / known issues]()
-       * [macOS Sonoma (14)]()
+   * [Caveats / known issues](#caveats--known-issues)
+       * [macOS Sonoma (14)](#macos-sonoma-14)
 
 ### Installation
 
