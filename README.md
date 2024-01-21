@@ -29,6 +29,8 @@ Also features the `macos_is_dark` helper function to determine if the macOS dark
    * [Extending zsh-lux](#extending-zsh-lux)
        * [Adding items](#adding-items)
        * [Adding modes](#adding-modes)
+   * [Caveats / known issues]()
+       * [macOS Sonoma (14)]()
 
 ### Installation
 
@@ -315,6 +317,17 @@ lux iterm purple
 LUX_ITERM_EXTRAS="superhero purple"
 ```
 
+### Caveats / known issues
+
+#### macOS Sonoma (14)
+
+* Using certain HEIF images as desktop picture will cause `macos_desktop_style` to sometimes reset the desktop picture to the system default, Sonoma Horizons (the vineyard photo).
+
+  (This is the case of `System/Library/Desktop Pictures/Sonoma.heic` which is the default used by `macos_desktop` when on Sonoma.)
+
+  **Workaround:** Don't use `macos_desktop_style` with these images. When setting `Sonoma.heic` or any other troublesome image, the image acts as if `macos_desktop_style` was set to  `auto` , i.e. the light/dark of the image will follow the system appearance.
+
+  To use the `all` item, override the `LUX_ALL_LIST` in your shell config to skip `macos_desktop_style` , e.g. `LUX_ALL_LIST=( macos macos_desktop iterm_all vscode )`
 
 ## Fun aliases!
 
