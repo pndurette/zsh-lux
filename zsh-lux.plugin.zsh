@@ -98,6 +98,19 @@ function _lux_command_found() {
     fi
 }
 
+# _lux_file_found: check if file exists
+# * Returns 1 if file does not exist
+# * Echos to stderr with name of calling function
+
+function _lux_file_found() {
+    local file=$1
+    local fct=$funcstack[2]
+    if [[ ! -f "$file" ]]; then
+        echo "'$fct' '$file' not found." >&2
+        return 1
+    fi
+}
+
 #-----------------------------------------
 # Get functions
 #-----------------------------------------
@@ -123,6 +136,28 @@ function macos_is_dark() {
     fi
 }
 
+# macos_main_version: get the version of macOS that can be compared
+# * Echos the version of macOS that can be compared
+#   (e.g. "10.15" for macOS 10.15.*, "11" for macOS 11.*.*)
+
+function macos_main_version() {
+    local macos_version=$(sw_vers -productVersion)
+
+    if [[ "$macos_version" =~ ^10\. ]]; then
+        # macOS 10.*: remove patch version number
+        # (e.g. 10.15.7 -> 10.15)
+        local macos_version=${macos_version%.*}
+    else
+        # macOS 11+: remove minor.patch version number
+        # (e.g. 11.6.1 -> 11)
+        local macos_version=${macos_version%.*.*}
+    fi
+
+    _lux_log "fct: $funcstack[1]" "macOS main version: $macos_version"
+
+    echo $macos_version
+}
+
 # macos_release_name: get the release name of macOS
 # * Echos the capitalized release name of macOS
 #   (e.g. "Catalina" for macOS 10.15.*)
@@ -137,10 +172,9 @@ function macos_release_name() {
         "14"    "Sonoma"
     )
     local macos_version=$(sw_vers -productVersion)
-    local macos_release=$_lux_macos_release_names[${macos_version%.*}]
+    local macos_release=$_lux_macos_release_names[$(macos_main_version)]
 
-    _lux_log "fct: $funcstack[1]" "macOS version: $macos_version" \
-                                  "macOS release: $macos_release"
+    _lux_log "fct: $funcstack[1]" "macOS release: $macos_release"
 
     echo $macos_release
 }
@@ -171,18 +205,30 @@ function _lux_set_macos() {
 #-----------------------------------------
 # Element: 'macos_desktop'
 # Action: Sets macOS desktop picture
-# Default modes:
-#  * 'light': '/System/Library/Desktop Pictures/$(macos_release_name) Graphic.heic'
-#  * 'dark': '/System/Library/Desktop Pictures/$(macos_release_name) Graphic.heic'
+# Default modes
+#  * Sonoma
+#    * 'light': '/System/Library/Desktop Pictures/$(macos_release_name).heic'
+#    * 'dark': '/System/Library/Desktop Pictures/$(macos_release_name).heic'
+#  * All other:
+#    * 'light': '/System/Library/Desktop Pictures/$(macos_release_name) Graphic.heic'
+#    * 'dark': '/System/Library/Desktop Pictures/$(macos_release_name) Graphic.heic'
 # Extra configuration: N/A
 # Requires:
 #  * macOS
 
-_lux_default LUX_MACOS_DESKTOP_LIGHT "/System/Library/Desktop Pictures/$(macos_release_name) Graphic.heic"
-_lux_default LUX_MACOS_DESKTOP_DARK  "/System/Library/Desktop Pictures/$(macos_release_name) Graphic.heic"
+if [[ $(macos_main_version) < 14 ]]; then
+    # Ventura and older
+    _lux_default LUX_MACOS_DESKTOP_LIGHT "/System/Library/Desktop Pictures/$(macos_release_name) Graphic.heic"
+    _lux_default LUX_MACOS_DESKTOP_DARK  "/System/Library/Desktop Pictures/$(macos_release_name) Graphic.heic"
+elif [[ $(macos_main_version) > 13 && $(macos_main_version) < 15 ]]; then
+    # Sonoma
+    _lux_default LUX_MACOS_DESKTOP_LIGHT "/System/Library/Desktop Pictures/$(macos_release_name).heic"
+    _lux_default LUX_MACOS_DESKTOP_DARK  "/System/Library/Desktop Pictures/$(macos_release_name).heic"
+fi
 
 function _lux_set_macos_desktop() {
     if ! _lux_is_macos; then return 1; fi
+    if ! _lux_file_found "$1"; then return 1; fi
     osascript -l JavaScript <<- EOF
         desktops = Application('System Events').desktops()
         for (d in desktops) {
@@ -304,7 +350,7 @@ function _lux_set_vscode() {
 #  * 'light': 'light'
 #  * 'dark': 'dark'
 # Extra configuration:
-#  * LUX_ALL_LIST: ( macos macos_desktop iterm_all vscode )
+#  * LUX_ALL_LIST: ( macos macos_desktop macos_desktop_style iterm_all vscode )
 
 LUX_ALL_LIGHT='light'
 LUX_ALL_DARK='dark'
